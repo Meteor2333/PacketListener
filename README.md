@@ -4,6 +4,8 @@
 
 [**English**](README.md) | [简体中文](README_CN.md)
 
+### **This is an API for Bukkit plugins**
+
 ## Advantages
 
 - Compared to other projects, this project wraps the packet interceptor and adds it directly to the ServerSocketChannel rather than listening for player join events and injecting interceptors through player instances. This approach enables capturing all packets from players regardless of their state. For example, packets sent when players query server information (latency, player count, MOTD) on the server list screen, as well as packets during client-server handshake and login.
@@ -35,6 +37,26 @@ repositories {
 
 dependencies {
     implementation 'cc.meteormc:packetlistener:$version'
+}
+```
+
+### Initialize it in the following way:
+
+```
+@Override
+public void onEnable() {
+    PacketListener.init(this);
+    Bukkit.getPluginManager().registerEvents(this, this);
+}
+
+@EventHandler
+public void onPacketInbound(PacketInboundEvent event) {
+    //do something
+}
+
+@EventHandler
+public void onPacketOutbound(PacketOutboundEvent event) {
+    //do something
 }
 ```
 

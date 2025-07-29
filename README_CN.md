@@ -4,6 +4,8 @@
 
 [English](README.md) | [**简体中文**](README_CN.md)
 
+### **这是一个用于Bukkit插件的API**
+
 ## 有什么优点？
 
 - 相较于其他项目，本项目将网络数据包拦截器包装后直接添加到了 ServerSocketChannel，而不是监听玩家加入游戏然后从玩家实例注入拦截器。这样的好处是使得玩家在任何状态下都可以完全捕捉到所有的数据包，例如玩家在服务器列表界面查询服务器信息（延时、玩家数、MOTD）的数据包，还有客户端与服务端握手、登录时的数据包。
@@ -12,7 +14,7 @@
 
 ## 如何使用？
 
-本项目已发布至 [Maven Central](https://central.sonatype.com/artifact/cc.meteormc/packetlistener)。
+**本项目已发布至 [Maven Central](https://central.sonatype.com/artifact/cc.meteormc/packetlistener)。**
 
 ### Maven
 
@@ -35,6 +37,26 @@ repositories {
 
 dependencies {
     implementation 'cc.meteormc:packetlistener:$version'
+}
+```
+
+### 然后这样初始化它
+
+```
+@Override
+public void onEnable() {
+    PacketListener.init(this);
+    Bukkit.getPluginManager().registerEvents(this, this);
+}
+
+@EventHandler
+public void onPacketInbound(PacketInboundEvent event) {
+    //do something
+}
+
+@EventHandler
+public void onPacketOutbound(PacketOutboundEvent event) {
+    //do something
 }
 ```
 
