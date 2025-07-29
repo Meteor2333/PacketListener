@@ -123,7 +123,7 @@ public class NettyPipelineInjector {
                     }
                 });
             }
-        }, "PacketListener-ServerChannelsWatcher").start();
+        }, "PacketListener-ServerSocketChannelWatcher").start();
     }
 
     /**
