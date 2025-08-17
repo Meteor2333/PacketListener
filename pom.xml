@@ -6,7 +6,7 @@
 
     <groupId>cc.meteormc</groupId>
     <artifactId>packetlistener</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2</version>
 
     <name>PacketListener</name>
     <description>A lightweight and easy-to-use packet listener API library.</description>

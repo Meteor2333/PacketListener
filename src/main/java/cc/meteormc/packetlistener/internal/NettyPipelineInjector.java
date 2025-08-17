@@ -75,7 +75,7 @@ public class NettyPipelineInjector {
      */
     @SuppressWarnings("ALL")
     public static void injectAll() throws IllegalThreadStateException {
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             Object server = getMinecraftServer();
             if (server == null) return;
 
@@ -105,7 +105,7 @@ public class NettyPipelineInjector {
             }
 
             // Block until Channels is not empty.
-            while (channels.isEmpty());
+            while (channels.isEmpty()) ;
 
             // Typically, Channels on the server side contain only one element, but this is done just to be safe.
             for (ChannelFuture channel : channels) {
@@ -123,7 +123,11 @@ public class NettyPipelineInjector {
                     }
                 });
             }
-        }, "PacketListener-ServerSocketChannelWatcher").start();
+
+            Thread.yield();
+        }, "PacketListener-ServerSocketChannelWatcher");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     /**
