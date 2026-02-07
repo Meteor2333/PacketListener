@@ -94,19 +94,21 @@ class PacketInterceptor extends ChannelDuplexHandler {
      */
     private void handlePacket(@NotNull Packet packet) {
         try {
-            if (packet.getDirection() == PacketDirection.CLIENTBOUND) {
-                if (packet.getStage() == PacketStage.LOGIN && "Success".equalsIgnoreCase(packet.getName())) {
+            if (packet.getDirection() == PacketDirection.CLIENTBOUND &&
+                    packet.getStage() == PacketStage.LOGIN &&
+                    "Success".equalsIgnoreCase(packet.getName())) {
                     // Success Login
                     this.profile = packet.getFieldValueOfType(GameProfile.class, 0);
                 }
-            }
 
-            if (packet.getDirection() == PacketDirection.SERVERBOUND) {
-                if (packet.getStage() == PacketStage.LOGIN && "Start".equalsIgnoreCase(packet.getName())) {
+
+            if (packet.getDirection() == PacketDirection.SERVERBOUND &&
+                    packet.getStage() == PacketStage.LOGIN &&
+                    "Start".equalsIgnoreCase(packet.getName())) {
                     // Hello Login
                     this.profile = packet.getFieldValueOfType(GameProfile.class, 0);
                 }
-            }
+
 
             if (player == null && profile != null) {
                 this.player = Bukkit.getPlayer(profile.getId());

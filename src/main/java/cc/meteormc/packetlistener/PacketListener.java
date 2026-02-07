@@ -22,11 +22,11 @@ public class PacketListener {
      * If invoked during the plugin loading phase, it is capable of capturing all packets
      * (though technically, listener registration can only happen after the plugin is enabled).
      *
-     * @param plugin the plugin using the PacketListener
+     * @param owner the plugin using the PacketListener
      */
-    public static void init(Plugin plugin) {
-        owner = plugin;
-        NettyPipelineInjector.injectAll();
+    public static void init(Plugin owner) {
+        PacketListener.owner = owner;
+        NettyPipelineInjector.inject();
     }
 
     /**

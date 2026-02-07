@@ -1,13 +1,13 @@
 package cc.meteormc.packetlistener.objects;
 
 import cc.meteormc.packetlistener.helper.Reflection;
+import org.apache.commons.lang3.reflect.FieldUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.Range;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -23,8 +23,8 @@ public class Packet {
     private final String name;
 
     // Damn it spigot mappings — why are the packet class names so chaotic?
-    public static Pattern PACKET_PATTERN = Pattern.compile("(Clientbound|Serverbound)(.+)Packet");
-    public static Pattern LEGACY_PACKET_PATTERN = Pattern.compile("Packet(Handshaking|Login|Play|Status)(In|Out)(.+)");
+    public static final Pattern PACKET_PATTERN = Pattern.compile("(Clientbound|Serverbound)(.+)Packet");
+    public static final Pattern LEGACY_PACKET_PATTERN = Pattern.compile("Packet(Handshaking|Login|Play|Status)(In|Out)(.+)");
 
     /**
      * Creates a {@link Packet}.
@@ -133,9 +133,10 @@ public class Packet {
      * @return all declared fields of the wrapped packet class
      */
     public @NotNull Field[] getFields() {
-        return Arrays.stream(handle.getClass().getDeclaredFields())
-                .peek(field -> field.setAccessible(true))
+        return FieldUtils.getAllFieldsList(handle.getClass())
+                .stream()
                 .filter(field -> !Modifier.isStatic(field.getModifiers()))
+                .peek(field -> field.setAccessible(true))
                 .toArray(Field[]::new);
     }
 

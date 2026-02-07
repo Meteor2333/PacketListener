@@ -10,6 +10,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.locks.LockSupport;
 import java.util.logging.Level;
 
 /**
@@ -19,17 +21,6 @@ import java.util.logging.Level;
  */
 public class NettyPipelineInjector {
     private final ChannelPipeline pipeline;
-
-    private static final Class<?> SERVER_BOOTSTRAP_ACCEPTOR_CLASS;
-
-    static {
-        try {
-            SERVER_BOOTSTRAP_ACCEPTOR_CLASS = Class.forName("io.netty.bootstrap.ServerBootstrap$ServerBootstrapAcceptor");
-        } catch (ClassNotFoundException e) {
-            // This is most likely impossible.
-            throw new IllegalStateException(e);
-        }
-    }
 
     /**
      * Injects the packet interceptor into a {@link ChannelPipeline}.
@@ -74,7 +65,8 @@ public class NettyPipelineInjector {
      * @throws IllegalThreadStateException if the thread was already started
      */
     @SuppressWarnings("ALL")
-    public static void injectAll() throws IllegalThreadStateException {
+    public static CompletableFuture<NettyPipelineInjector> inject() throws IllegalThreadStateException {
+        CompletableFuture<NettyPipelineInjector> future = new CompletableFuture<>();
         Thread thread = new Thread(() -> {
             Object server = getMinecraftServer();
             if (server == null) return;
@@ -88,10 +80,13 @@ public class NettyPipelineInjector {
             List<ChannelFuture> channels;
 
             try {
-                // Block until ServerConnection is available.
+                // Wait until ServerConnection is available.
                 while (true) {
                     Object object = serverConnectionField.get(server);
-                    if (object == null) continue;
+                    if (object == null) {
+                        LockSupport.parkNanos(1000000);
+                        continue;
+                    }
 
                     Field[] fields = serverConnectionField.getType().getDeclaredFields();
                     Field channelsField = fields[fields.length - 2]; // It is always the second to last element.
@@ -104,8 +99,8 @@ public class NettyPipelineInjector {
                 return;
             }
 
-            // Block until Channels is not empty.
-            while (channels.isEmpty()) ;
+            // Wait until Channels is not empty.
+            while (channels.isEmpty()) Thread.yield();
 
             // Typically, Channels on the server side contain only one element, but this is done just to be safe.
             for (ChannelFuture channel : channels) {
@@ -115,7 +110,7 @@ public class NettyPipelineInjector {
                         try {
                             if (msg instanceof Channel) {
                                 Channel channel = (Channel) msg;
-                                new NettyPipelineInjector(channel.pipeline());
+                                future.complete(new NettyPipelineInjector(channel.pipeline()));
                             }
                         } finally {
                             super.channelRead(ctx, msg);
@@ -123,11 +118,10 @@ public class NettyPipelineInjector {
                     }
                 });
             }
-
-            Thread.yield();
         }, "PacketListener-ServerSocketChannelWatcher");
         thread.setDaemon(true);
         thread.start();
+        return future;
     }
 
     /**
